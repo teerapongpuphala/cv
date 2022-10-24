@@ -1,0 +1,9 @@
+.cropped {
+width: 350px; 
+height: 350px; 
+overflow: hidden;
+}
+
+.cropped img {
+margin: -150px 0px 0px -150px;
+}

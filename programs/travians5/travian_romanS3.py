@@ -1,0 +1,76 @@
+from random import randint
+from bs4 import BeautifulSoup
+import requests
+import urllib.parse
+
+userName = "tee"
+password = "20112536123"
+mainURL = "https://ts3.x1.asia.travian.com"
+
+session= requests.Session()
+response = session.get(mainURL)
+# print(response)
+soup= BeautifulSoup(response.content,"html.parser")
+
+formaction = soup.form['action']
+formmethod = soup.form['method']
+
+postUrl = urllib.parse.urljoin(mainURL,formaction)
+
+nameInput = soup.form.tr.findAll('td')[1].input.get('name')
+passwordInput = soup.form.findAll('tr')[1].findAll('td')[1].input.get('name')
+buttonInput = soup.form.findAll('tr')[4].findAll('td')[1].button.get('name')
+postData={}
+postData[nameInput]=userName
+postData[passwordInput]=password
+postData[buttonInput]='submit'
+response= session.post(postUrl,data=postData)
+
+
+
+bildding_list_check  = session.get("https://ts3.x1.asia.travian.com/dorf1.php")
+list_soup = BeautifulSoup(bildding_list_check.content,"html.parser")
+in_process = list_soup.find('div',class_='buildingList').find('ul').find_all('li')
+
+
+newdids=["19813","23751","24629"] #
+for newdid in newdids:
+    print(newdid)
+    # for choosen vill
+    for num in range(1,19):
+        if len(in_process) >1:   #this only for roman   use if in_process: for others
+            # print("in process")
+            break
+        else:
+            try:
+                randid = randint(1,18)
+                gid1 =[1,3,14,17]
+                gid2 =[5,6,16,18]
+                gid3 =[4,7,10,11]
+                gid4 =[2,8,9,12,13,15]
+                if randid in gid1: gid = "gid=1"
+                if randid in gid2: gid = "gid=2"
+                if randid in gid3: gid = "gid=3"
+                if randid in gid4: gid = "gid=4"
+
+                upgt_response =session.get("https://ts3.x1.asia.travian.com/build.php?newdid="+newdid+"&id="+str(randid)+"&"+gid)
+                # print(upgt_response)
+                bttpopup = BeautifulSoup(upgt_response.content,"html.parser")
+                butt =  bttpopup.find('button',class_='textButtonV1 green build')
+                post_id = butt['id']
+                # print(post_id)
+                post_value = butt['value']
+                if "หัวหน้าคนก่อสร้าง" in post_value:exit
+                post_path = butt['onclick'].split("'")[1]
+                # print(post_id,post_value,post_path)
+
+                sendurl = urllib.parse.urljoin("https://ts3.x1.asia.travian.com",post_path)
+                postData={}
+                postData["value"]=post_value
+                postData["id"]=post_id
+
+                response= session.post(sendurl,data=postData)
+            except TypeError:
+                # print("TypeError")
+                continue
+
